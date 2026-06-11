@@ -8,9 +8,15 @@ export const redis = new Redis({
   maxRetriesPerRequest: 1
 });
 
+redis.on('error', () => {
+  // Redis is optional cache infrastructure; keep API logs quiet when disabled.
+});
+
 let connected = false;
+const disabled = process.env.REDIS_DISABLED === '1';
 
 export async function getCache(key) {
+  if (disabled) return null;
   try {
     if (!connected) {
       await redis.connect();
@@ -24,6 +30,7 @@ export async function getCache(key) {
 }
 
 export async function setCache(key, value, seconds = 60) {
+  if (disabled) return;
   try {
     if (!connected) {
       await redis.connect();
@@ -36,6 +43,7 @@ export async function setCache(key, value, seconds = 60) {
 }
 
 export async function delCache(...keys) {
+  if (disabled) return;
   try {
     if (!connected) {
       await redis.connect();
@@ -48,6 +56,7 @@ export async function delCache(...keys) {
 }
 
 export async function delCacheByPattern(pattern) {
+  if (disabled) return;
   try {
     if (!connected) {
       await redis.connect();
