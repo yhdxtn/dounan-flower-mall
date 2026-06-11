@@ -13,7 +13,7 @@ export async function ensureChatReady() {
       setting_key VARCHAR(80) PRIMARY KEY,
       setting_value TEXT,
       updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   `);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS chat_sessions (
@@ -25,7 +25,7 @@ export async function ensureChatReady() {
       updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       INDEX idx_chat_sessions_user (user_id, status),
       CONSTRAINT fk_chat_sessions_user FOREIGN KEY (user_id) REFERENCES users(id)
-    ) ENGINE=InnoDB
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   `);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS chat_messages (
@@ -36,7 +36,7 @@ export async function ensureChatReady() {
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       INDEX idx_chat_messages_session (session_id, created_at),
       CONSTRAINT fk_chat_messages_session FOREIGN KEY (session_id) REFERENCES chat_sessions(id)
-    ) ENGINE=InnoDB
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   `);
   tablesReady = true;
 }
@@ -67,8 +67,12 @@ async function askDeepSeek(message) {
   if (!apiKey) throw new Error('DeepSeek API Key not configured');
 
   const endpoint = baseUrl.endsWith('/chat/completions') ? baseUrl : `${baseUrl.replace(/\/$/, '')}/chat/completions`;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 75000);
+
   const response = await fetch(endpoint, {
     method: 'POST',
+    signal: controller.signal,
     headers: {
       Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json'
@@ -78,13 +82,13 @@ async function askDeepSeek(message) {
       messages: [
         {
           role: 'system',
-          content: '你是斗斗鲜花商城客服，回答要简短温柔。可帮助用户选花、查询下单流程、说明库存与配送。无法处理售后或人工操作时，引导转人工客服。'
+          content: '你是斗斗鲜花商城客服，回答要简短温柔。可以帮助用户选花、查询下单流程、说明库存与配送。无法处理售后或人工操作时，引导转人工客服。'
         },
         { role: 'user', content: message }
       ],
       temperature: 0.7
     })
-  });
+  }).finally(() => clearTimeout(timeout));
 
   if (!response.ok) throw new Error(`DeepSeek request failed: ${response.status}`);
   const data = await response.json();
@@ -122,8 +126,10 @@ router.post('/messages', async (req, res, next) => {
       await pool.query('INSERT INTO chat_messages (session_id, sender, content) VALUES (?, "ai", ?)', [session.id, reply]);
       await pool.query('UPDATE chat_sessions SET last_message = ? WHERE id = ?', [reply, session.id]);
       return res.json({ mode: 'ai', reply });
-    } catch {
-      const fallback = 'DeepSeek 客服暂时不可用，已为你转接人工客服，请留下你的需求或订单号。';
+    } catch (error) {
+      const fallback = error.name === 'AbortError'
+        ? 'DeepSeek 回复时间较长，已为你转接人工客服。你也可以稍后点击“DeepSeek 接管”再试。'
+        : 'DeepSeek 客服暂时不可用，已为你转接人工客服，请留下你的需求或订单号。';
       await pool.query('UPDATE chat_sessions SET status = "human", last_message = ? WHERE id = ?', [fallback, session.id]);
       await pool.query('INSERT INTO chat_messages (session_id, sender, content) VALUES (?, "system", ?)', [session.id, fallback]);
       return res.json({ mode: 'human', reply: fallback });
