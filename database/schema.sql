@@ -1,6 +1,7 @@
-CREATE DATABASE IF NOT EXISTS dounan_flower_mall DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+CREATE DATABASE IF NOT EXISTS dounan_flower_mall DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE dounan_flower_mall;
 
+SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS order_items;
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS carts;
@@ -12,6 +13,7 @@ DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS categories;
 DROP TABLE IF EXISTS system_settings;
 DROP TABLE IF EXISTS users;
+SET FOREIGN_KEY_CHECKS = 1;
 
 CREATE TABLE users (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -21,20 +23,20 @@ CREATE TABLE users (
   phone VARCHAR(20),
   role ENUM('buyer', 'admin') NOT NULL DEFAULT 'buyer',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE system_settings (
   setting_key VARCHAR(80) PRIMARY KEY,
   setting_value TEXT,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE categories (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
   name VARCHAR(80) NOT NULL,
   sort_order INT NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE chat_sessions (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -45,7 +47,7 @@ CREATE TABLE chat_sessions (
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_chat_sessions_user (user_id, status),
   CONSTRAINT fk_chat_sessions_user FOREIGN KEY (user_id) REFERENCES users(id)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE chat_messages (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -55,7 +57,7 @@ CREATE TABLE chat_messages (
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_chat_messages_session (session_id, created_at),
   CONSTRAINT fk_chat_messages_session FOREIGN KEY (session_id) REFERENCES chat_sessions(id)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE products (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -71,7 +73,7 @@ CREATE TABLE products (
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT fk_products_category FOREIGN KEY (category_id) REFERENCES categories(id)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE inventory (
   product_id BIGINT PRIMARY KEY,
@@ -82,7 +84,7 @@ CREATE TABLE inventory (
   CONSTRAINT fk_inventory_product FOREIGN KEY (product_id) REFERENCES products(id),
   CONSTRAINT chk_inventory_stock CHECK (stock >= 0),
   CONSTRAINT chk_inventory_locked CHECK (locked_stock >= 0)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE inventory_logs (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -95,7 +97,7 @@ CREATE TABLE inventory_logs (
   remark VARCHAR(255),
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_inventory_logs_product FOREIGN KEY (product_id) REFERENCES products(id)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE carts (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -107,7 +109,7 @@ CREATE TABLE carts (
   UNIQUE KEY uk_cart_user_product (user_id, product_id),
   CONSTRAINT fk_carts_user FOREIGN KEY (user_id) REFERENCES users(id),
   CONSTRAINT fk_carts_product FOREIGN KEY (product_id) REFERENCES products(id)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE orders (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -127,7 +129,7 @@ CREATE TABLE orders (
   CONSTRAINT fk_orders_user FOREIGN KEY (user_id) REFERENCES users(id),
   INDEX idx_orders_user_status (user_id, status),
   INDEX idx_orders_created_at (created_at)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE order_items (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -140,4 +142,4 @@ CREATE TABLE order_items (
   subtotal DECIMAL(10,2) NOT NULL,
   CONSTRAINT fk_order_items_order FOREIGN KEY (order_id) REFERENCES orders(id),
   CONSTRAINT fk_order_items_product FOREIGN KEY (product_id) REFERENCES products(id)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -4,6 +4,11 @@ INSERT INTO users (username, password_hash, nickname, phone, role) VALUES
 ('admin', 'plain:admin123', '斗南运营员', '13800000001', 'admin'),
 ('buyer', 'plain:buyer123', '鲜花采购商', '13800000002', 'buyer');
 
+INSERT INTO system_settings (setting_key, setting_value) VALUES
+('deepseek_base_url', 'https://fumin.ai/v1'),
+('deepseek_model', 'gpt-5.4-mini'),
+('deepseek_api_key', '');
+
 INSERT INTO categories (name, sort_order) VALUES
 ('玫瑰', 1),
 ('百合', 2),
