@@ -1,0 +1,26 @@
+{
+  "name": "dounan-flower-mall-web",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.4.4",
+    "@capacitor/core": "^7.4.4",
+    "@element-plus/icons-vue": "^2.3.1",
+    "axios": "^1.7.4",
+    "dounan-flower-mall": "file:..",
+    "element-plus": "^2.7.8",
+    "pinia": "^2.2.2",
+    "vue": "^3.4.38",
+    "vue-router": "^4.4.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.4.4",
+    "@vitejs/plugin-vue": "^5.1.2",
+    "vite": "^5.4.2"
+  }
+}

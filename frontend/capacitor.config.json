@@ -1,0 +1,12 @@
+{
+  "appId": "com.doudou.flowermall",
+  "appName": "斗斗鲜花商城",
+  "webDir": "dist",
+  "server": {
+    "url": "http://82.157.64.38:5001",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}
